@@ -12,19 +12,22 @@ class HomePage extends React.Component {
         super(props);
 
         this.state = {
+            selectedFile: null,
+            serverIndex: 0,
             files: [],
             servers: []
         };
 
         axios.get('http://localhost:8081/servers')
             .then(response => {
-                this.setState({ servers: response.data });
-                const serverIndex = this.state.servers[Math.floor(Math.random() * this.state.servers.length)];
-                console.log('Server Index: ', serverIndex);
+                this.setState({ servers: response.data,
+                                serverIndex: response.data[0] });
+                // const serverIndex = this.state.servers[Math.floor(Math.random() * this.state.servers.length)];
+                console.log('Server Index: ', this.state.serverIndex);
                 let query = {
                     username: this.props.user.username,
                 }
-                axios.get('http://localhost:' + serverIndex + '/files?username=' + query.username)
+                axios.get('http://localhost:' + this.state.serverIndex + '/files?username=' + query.username)
                     .then(response => {
                         this.setState({ files: response.data });
                     })
@@ -37,25 +40,19 @@ class HomePage extends React.Component {
             });
     }
 
-    handleChange = (event) => {
+    handleSeverChange = (event) => {
         this.setState({
             serverIndex: event.target.value
         });
     }
 
+    handleChange = (event) => {
+        this.setState({
+            selectedFile: event.target.value
+        });
+    }
+
     render() {
-        const files1 = [
-            {
-                name: 'file1',
-                size: '1.2 MB',
-                type: 'text/plain'
-            },
-            {
-                name: 'file2',
-                size: '1.2 MB',
-                type: 'text/plain'
-            },
-        ]
         const { user, users } = this.props;
         return (
             <div className="container">
@@ -63,22 +60,24 @@ class HomePage extends React.Component {
                         <div className="col">
                             <h1>Hi {user.firstName}!</h1>
                             <p>Choose a server</p>
-                            <select onChange={this.handleChange}>
+                            <select onChange={this.handleSeverChange}>
+                                {console.log('Server Index: ', this.state.serverIndex)}
                                 {this.state.servers.map((server, index) =>
                                     <option key={index} value={server}>{server}</option>
                                 )}
                             </select>
                             <p>Below is a list of files available to you:</p>
                             {console.log('Files yaha: ', this.state.files)}
-                            <div>
+                            <div onChange={this.handleChange}>
                                 {
                                     this.state.files.map((file) => (
                                         <div>
-                                            <input type="radio" key={file.fileName} value={file.fileName}/>
+                                            <input type="radio" key={file.fileName} value={file.fileName} name="file"/>
                                             <label> { file.fileName } </label>
                                         </div>
                                     ))
                                 }
+                                {console.log('Selected File: ', this.state.selectedFile)}
                                 {/* {this.state.files.map(file => <li key={file.fileName}>
                                     {file.fileName}
                                 </li>
